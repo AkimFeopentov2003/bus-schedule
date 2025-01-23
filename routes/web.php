@@ -3,9 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BusController;
 
+
+
+
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/find-bus', [BusController::class, 'showFindBus']);
+Route::post('/find-bus', [BusController::class, 'findBus']);
 

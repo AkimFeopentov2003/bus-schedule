@@ -17,6 +17,28 @@ class BusController extends Controller
         $stops = Stop::all(); // Загрузка всех остановок
         return view('find-bus', ['stops' => $stops]);
     }
+
+    public function findBus(Request $request)
+    {
+        // Получаем параметры из запроса
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Логика поиска автобусов (замените на свою логику)
+        $buses = [
+            [
+                'route' => 'Маршрут 1',
+                'next_arrivals' => ['12:00', '12:30', '13:00']
+            ],
+            [
+                'route' => 'Маршрут 2',
+                'next_arrivals' => ['12:15', '12:45', '13:15']
+            ]
+        ];
+
+        // Возвращаем данные в формате JSON
+        return response()->json(['buses' => $buses]);
+    }
     public function getStops()
     {
         $stops = Stop::all();
@@ -45,18 +67,18 @@ class BusController extends Controller
     }
 
     // Найти маршруты между остановками
-    public function findBus(Request $request)
-    {
-        $from = $request->input('from');
-        $to = $request->input('to');
-
-        $routes = RouteStop::where('stop_id', $from)
-            ->whereHas('routeStops', function ($query) use ($to) {
-                $query->where('stop_id', $to);
-            })
-            ->with(['route', 'routeStops'])
-            ->get();
-
-        return response()->json($routes);
-    }
+//    public function findBus(Request $request)
+//    {
+//        $from = $request->input('from');
+//        $to = $request->input('to');
+//
+//        $routes = RouteStop::where('stop_id', $from)
+//            ->whereHas('routeStops', function ($query) use ($to) {
+//                $query->where('stop_id', $to);
+//            })
+//            ->with(['route', 'routeStops'])
+//            ->get();
+//
+//        return response()->json($routes);
+//    }
 }

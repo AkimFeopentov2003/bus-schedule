@@ -29,6 +29,7 @@
                 @endforeach
             </select>
         </div>
+        <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn-primary">Найти автобус</button>
     </form>
 
@@ -52,7 +53,17 @@
         },
         methods: {
             async findBus() {
-                const response = await fetch(`/api/find-bus?from=${this.from}&to=${this.to}`);
+                const response = await fetch('/find-bus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: this.from,
+                        to: this.to
+                    })
+                });
+
                 const data = await response.json();
                 this.buses = data.buses;
             }
@@ -64,6 +75,7 @@
         app.findBus();
     });
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
