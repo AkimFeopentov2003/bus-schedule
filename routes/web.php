@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BusController;
-use App\Http\Middleware\DisableCsrf;
 
 
 
@@ -11,5 +10,5 @@ Route::get('/', function () {
 });
 
 Route::get('/api/find-bus', [BusController::class, 'showFindBus']);
-Route::middleware([DisableCsrf::class])->post('find-bus', [BusController::class, 'findBus']);
+Route::post('find-bus', [BusController::class, 'findBus']);
 
