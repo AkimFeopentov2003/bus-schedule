@@ -1,15 +1,12 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BusController;
-use App\Http\Middleware\DisableCsrf;
-
-
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/api/find-bus', [BusController::class, 'showFindBus']);
-Route::middleware([DisableCsrf::class])->post('find-bus', [BusController::class, 'findBus']);
 
+Route::post('/find-bus', function () {
+    return response()->json(['message' => 'Bus route found']);
+});
