@@ -18,6 +18,7 @@ class BusController extends Controller
         $stops = Stop::all(); // Загрузка всех остановок
         return view('find-bus', ['stops' => $stops]);
     }
+
     public function findBus(Request $request)
     {
         $departureStopId = $request->input('from');
@@ -30,15 +31,15 @@ class BusController extends Controller
 
         // Находим маршруты, проходящие через обе остановки
         $routes = RouteStop::where('stop_id', $departureStopId)
-        ->whereHas('route.routeStops', function ($query) use ($arrivalStopId) {
-            $query->where('stop_id', $arrivalStopId);
-        })
-        ->with('route.schedules', 'route')
-        ->get();
+            ->whereHas('route.routeStops', function ($query) use ($arrivalStopId) {
+                $query->where('stop_id', $arrivalStopId);
+            })
+            ->with('route.schedules', 'route')
+            ->get();
 
         // Получаем текущее время
-//        $currentTime = Carbon::now();
-        $currentTime = Carbon::createFromTime(5, 25);
+        $currentTime = Carbon::now();
+//        $currentTime = Carbon::createFromTime(5, 25);
         $buses = [];
 
 
@@ -80,6 +81,7 @@ class BusController extends Controller
         return response()->json(['buses' => $buses]);
 
     }
+
     public function getStops()
     {
         $stops = Stop::all();
@@ -106,20 +108,4 @@ class BusController extends Controller
         $schedules = RouteSchedule::where('route_id', $routeId)->get();
         return response()->json($schedules);
     }
-
-    // Найти маршруты между остановками
-//    public function findBus(Request $request)
-//    {
-//        $from = $request->input('from');
-//        $to = $request->input('to');
-//
-//        $routes = RouteStop::where('stop_id', $from)
-//            ->whereHas('routeStops', function ($query) use ($to) {
-//                $query->where('stop_id', $to);
-//            })
-//            ->with(['route', 'routeStops'])
-//            ->get();
-//
-//        return response()->json($routes);
-//    }
 }
