@@ -66,7 +66,7 @@
                 // console.log('Отправляемые данные:', requestData);
 
                 try {
-                    const response = await fetch('/find-bus', {
+                    const response = await fetch('/api/find-bus', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
