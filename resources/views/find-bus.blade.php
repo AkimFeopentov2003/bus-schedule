@@ -33,12 +33,15 @@
         <button type="submit" class="btn btn-primary">Найти автобус</button>
     </form>
 
-    {{--    <div id="busResults" class="mt-4">--}}
-    {{--        <div v-for="bus in buses" class="alert alert-info">--}}
-    {{--            <h5>{{ bus.route }}</h5>--}}
-    {{--            <p>Ближайшие прибытия: {{ bus.next_arrivals.join(', ') }}</p>--}}
-    {{--        </div>--}}
-    {{--    </div>--}}
+    <div id="busResults" class="mt-4">
+        <div v-if="buses.length === 0" class="alert alert-warning">
+            По данному маршруту нет автобусов
+        </div>
+        <div v-for="(bus, index) in buses" :key="index" class="alert alert-info">
+            <h5>@{{ bus.route }}</h5>
+            <p>Ближайшие прибытия: @{{ bus.next_arrivals.join(', ') }}</p>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@3.2.30/dist/vue.global.prod.js"></script>
@@ -55,26 +58,31 @@
             async findBus() {
                 const csrfToken = document.getElementById('token').value; // Получение CSRF токена
 
-                const response = await fetch('/find-bus', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken // Добавление CSRF токена в заголовок
-                    },
-                    body: JSON.stringify({
-                        from: this.from,
-                        to: this.to
-                    })
-                });
+                const requestData = {
+                    from: this.from,
+                    to: this.to
+                };
 
-                if (!response.ok) {
-                    console.error('Ошибка запроса:', response.status);
-                    return;
+                // console.log('Отправляемые данные:', requestData);
+
+                try {
+                    const response = await fetch('/find-bus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const data = await response.json();
+                    console.log(data);
+                    this.buses = data.buses;
+                } catch (error) {
+                    console.error('Ошибка подключения:', error);
                 }
 
-                const data = await response.json();
-                this.buses = data.buses;
-                console.log(this.buses)
+
             }
         }
     }).mount('body');

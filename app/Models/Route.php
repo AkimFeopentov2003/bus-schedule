@@ -7,7 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Route extends Model
 {
-    use HasFactory;
-
     protected $fillable = ['name', 'bus_id'];
+
+    public function routeStops()
+    {
+        return $this->hasMany(RouteStop::class);
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(RouteSchedule::class);
+    }
 }

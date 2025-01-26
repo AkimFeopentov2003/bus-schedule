@@ -7,7 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class RouteStop extends Model
 {
-    use HasFactory;
-
     protected $fillable = ['route_id', 'stop_id', 'stop_order', 'travel_time'];
+
+    public function route()
+    {
+        return $this->belongsTo(Route::class);
+    }
+
+    public function stop()
+    {
+        return $this->belongsTo(Stop::class);
+    }
 }
+

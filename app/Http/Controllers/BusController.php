@@ -8,6 +8,7 @@ use App\Models\Route;
 use App\Models\RouteStop;
 use App\Models\RouteSchedule;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class BusController extends Controller
 {
@@ -17,27 +18,67 @@ class BusController extends Controller
         $stops = Stop::all(); // Загрузка всех остановок
         return view('find-bus', ['stops' => $stops]);
     }
-
     public function findBus(Request $request)
     {
-        // Получаем параметры из запроса
-        $from = $request->input('from');
-        $to = $request->input('to');
+        $departureStopId = $request->input('from');
+        $arrivalStopId = $request->input('to');
 
-        // Логика поиска автобусов (замените на свою логику)
-        $buses = [
-            [
-                'route' => 'Маршрут 1',
-                'next_arrivals' => ['12:00', '12:30', '13:00']
-            ],
-            [
-                'route' => 'Маршрут 2',
-                'next_arrivals' => ['12:15', '12:45', '13:15']
-            ]
-        ];
+        // Проверяем, что обе остановки указаны
+        if (!$departureStopId || !$arrivalStopId) {
+            return response()->json(['error' => 'Укажите обе остановки'], 400);
+        }
 
-        // Возвращаем данные в формате JSON
+        // Находим маршруты, проходящие через обе остановки
+        $routes = RouteStop::where('stop_id', $departureStopId)
+        ->whereHas('route.routeStops', function ($query) use ($arrivalStopId) {
+            $query->where('stop_id', $arrivalStopId);
+        })
+        ->with('route.schedules', 'route')
+        ->get();
+
+        // Получаем текущее время
+//        $currentTime = Carbon::now();
+        $currentTime = Carbon::createFromTime(5, 25);
+        $buses = [];
+
+
+        foreach ($routes as $routeStop) {
+            $route = $routeStop->route;
+            $departureTime = $routeStop->travel_time;
+
+            $arrivalStop = $route->routeStops->firstWhere('stop_id', $arrivalStopId);
+            if ($arrivalStop->stop_order > $routeStop->stop_order) {
+                $nextArrivals = $route->schedules
+                    ->map(function ($schedule) use ($departureTime) {
+                        return Carbon::parse($schedule->departure_time)
+                            ->addMinutes($departureTime)
+                            ->format('H:i');
+                    })
+                    ->sort(function ($time1, $time2) use ($currentTime) {
+                        // Преобразуем время в объект Carbon для сравнения
+                        $carbonTime1 = Carbon::parse($time1);
+                        $carbonTime2 = Carbon::parse($time2);
+
+                        // Вычисляем разницу времени
+                        $diff1 = $carbonTime1->greaterThanOrEqualTo($currentTime)
+                            ? $carbonTime1->diffInMinutes($currentTime)
+                            : $carbonTime1->addDay()->diffInMinutes($currentTime);
+                        $diff2 = $carbonTime2->greaterThanOrEqualTo($currentTime)
+                            ? $carbonTime2->diffInMinutes($currentTime)
+                            : $carbonTime2->addDay()->diffInMinutes($currentTime);
+
+                        return $diff1 <=> $diff2;
+                    });
+
+                $buses[] = [
+                    'route' => $route->name,
+                    'next_arrivals' => $nextArrivals->take(3)->values()->toArray(), // Берём только 3 ближайших времени
+                ];
+            }
+        }
+
         return response()->json(['buses' => $buses]);
+
     }
     public function getStops()
     {
