@@ -24,8 +24,8 @@ psql -U laravel -d laravel_db < dump.sql
 
 ### 3. Запустите докер
 #### Две команды:
-$ docker-compose build 
+$ sudo docker-compose build 
 
-$ docker-compose up -d
+$ sudo docker-compose up -d
 
 
