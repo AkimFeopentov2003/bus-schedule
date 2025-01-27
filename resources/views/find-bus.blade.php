@@ -56,7 +56,7 @@
                         id="stopsSelect"
                         class="form-select"
                         v-model="selectedStop"
-                        :disabled="stopsInput === null"
+                        :disabled="stopsInput === null || bus.routeId !== currentBus"
                     >
                         <option v-for="(stop, index) in stopsInput" :key="index" :value="stop.stop_id">
                             @{{ stop.name }}
@@ -64,7 +64,7 @@
                     </select>
                     <button
                         class="btn btn-primary mt-2"
-                        :disabled="!selectedStop"
+                        :disabled="!selectedStop || bus.routeId !== currentBus"
                         @click.stop="addStopToRoute(bus, selectedStop)"
                     >
                         Добавить остановку
@@ -87,6 +87,7 @@
                 buses: [],
                 stopsInput: null,
                 selectedStop: null,
+                currentBus: null,
             };
         },
         methods: {
@@ -108,7 +109,7 @@
                         body: JSON.stringify(requestData)
                     });
                     const data = await response.json();
-                    // console.log(data);
+                    console.log(data);
                     this.buses = data.buses;
                     this.fromId = data.fromId;
                     this.toId = data.toId;
@@ -117,6 +118,7 @@
                 }
             },
             async selectBus(bus) {
+                this.currentBus = bus.routeId;
                 const requestData = {
                     routeId: bus.routeId,
                     stops : bus.stops,
@@ -165,6 +167,7 @@
                     const data = await response.json();
                     console.log(data);
                     bus.stops = data.stops;
+                    this.currentBus = null;
                     this.stopsInput = null;
                     this.selectedStop = null;
                 } catch (error) {
