@@ -40,7 +40,7 @@ class BusController extends Controller
 
         // Получаем текущее время
         $currentTime = Carbon::now();
-//        $currentTime = Carbon::createFromTime(5, 25);
+//        $currentTime = Carbon::createFromTime(8, 25);
         $buses = [];
 
 
@@ -69,7 +69,7 @@ class BusController extends Controller
                             ? $carbonTime2->diffInMinutes($currentTime)
                             : $carbonTime2->addDay()->diffInMinutes($currentTime);
 
-                        return $diff1 <=> $diff2;
+                        return $diff2 <=> $diff1;
                     });
 
                 $buses[] = [
