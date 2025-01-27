@@ -58,7 +58,7 @@
                         v-model="selectedStop"
                         :disabled="stopsInput === null || bus.routeId !== currentBus"
                     >
-                        <option v-for="(stop, index) in stopsInput" :key="index" :value="stop.stop_id">
+                        <option v-for="(stop, index) in stopsInput" :key="index" :value="stop.stop_id" :disabled="bus.routeId !== currentBus">
                             @{{ stop.name }}
                         </option>
                     </select>
@@ -92,6 +92,9 @@
         },
         methods: {
             async findBus() {
+                this.stopsInput = null;
+                this.selectedStop = null;
+                this.currentBus = null;
                 const csrfToken = document.getElementById('token').value; // Получение CSRF токена
                 this.stops = [];
                 const requestData = {
