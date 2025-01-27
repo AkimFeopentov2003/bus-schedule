@@ -23,7 +23,8 @@ class BusController extends Controller
     {
         $departureStopId = $request->input('from');
         $arrivalStopId = $request->input('to');
-
+        $from = Stop::where('id', $departureStopId)->value('name');
+        $to=Stop::where('id', $arrivalStopId)->value('name');
         // Проверяем, что обе остановки указаны
         if (!$departureStopId || !$arrivalStopId) {
             return response()->json(['error' => 'Укажите обе остановки'], 400);
@@ -72,13 +73,19 @@ class BusController extends Controller
                     });
 
                 $buses[] = [
+                    'route_id' => $route->id,
                     'route' => $route->name,
                     'next_arrivals' => $nextArrivals->take(3)->values()->toArray(), // Берём только 3 ближайших времени
                 ];
             }
         }
 
-        return response()->json(['buses' => $buses]);
+        return response()->json([
+            'fromId' => $departureStopId,
+            'toId' => $arrivalStopId,
+            'from' => $from,
+            'to' => $to,
+            'buses' => $buses]);
 
     }
 
