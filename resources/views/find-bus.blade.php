@@ -119,7 +119,9 @@
             async selectBus(bus) {
                 const requestData = {
                     routeId: bus.routeId,
-                    stops : bus.stops
+                    stops : bus.stops,
+                    from: this.from,
+                    to: this.to
                 };
                 const csrfToken = document.getElementById('token').value;
                 console.log(requestData)

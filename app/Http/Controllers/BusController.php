@@ -24,7 +24,7 @@ class BusController extends Controller
         $departureStopId = $request->input('from');
         $arrivalStopId = $request->input('to');
         $from = Stop::where('id', $departureStopId)->value('name');
-        $to=Stop::where('id', $arrivalStopId)->value('name');
+        $to = Stop::where('id', $arrivalStopId)->value('name');
         // Проверяем, что обе остановки указаны
         if (!$departureStopId || !$arrivalStopId) {
             return response()->json(['error' => 'Укажите обе остановки'], 400);
@@ -92,23 +92,35 @@ class BusController extends Controller
             'buses' => $buses]);
 
     }
-
-    public function getStops(Request $request)
+        public function getStops(Request $request)
     {
         $routeId = $request->input('routeId');
         $stops = $request->input('stops');
         $selectedStopIds = is_array($stops) ? array_column($stops, 'id') : [];
+        $fromStopId = $request->input('from');
+        $toStopId = $request->input('to');
+        $fromStopOrder = RouteStop::where('route_id', $routeId)
+            ->where('stop_id', $fromStopId)
+            ->value('stop_order');
+
+        $toStopOrder = RouteStop::where('route_id', $routeId)
+            ->where('stop_id', $toStopId)
+            ->value('stop_order');
+
+        // Получаем все остановки, удовлетворяющие условиям
         $unselectedStops = RouteStop::join('stops', 'route_stops.stop_id', '=', 'stops.id')
             ->where('route_stops.route_id', $routeId)
             ->whereNotIn('route_stops.stop_id', $selectedStopIds)
+            ->where('route_stops.stop_order', '>', $fromStopOrder)
+            ->where('route_stops.stop_order', '<', $toStopOrder)
             ->orderBy('route_stops.stop_order')
             ->get(['route_stops.stop_id', 'stops.name']);
-
 
         return response()->json([
             'stops' => $unselectedStops,
         ]);
     }
+
     public function addStop(Request $request)
     {
         $routeId = $request->input('routeId');
@@ -135,25 +147,5 @@ class BusController extends Controller
             'stops' => $stops,
         ]);
 
-    }
-    // Получить все автобусы
-    public function getBuses()
-    {
-        $buses = Bus::all();
-        return response()->json($buses);
-    }
-
-    // Получить маршруты с остановками
-    public function getRoutesWithStops()
-    {
-        $routes = Route::with('stops')->get();
-        return response()->json($routes);
-    }
-
-    // Получить расписание для заданного маршрута
-    public function getSchedule($routeId)
-    {
-        $schedules = RouteSchedule::where('route_id', $routeId)->get();
-        return response()->json($schedules);
     }
 }
