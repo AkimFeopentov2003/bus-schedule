@@ -18,8 +18,9 @@
 К сожалению не удалось поднять дамп в докере.
 Поднимите dump в ручную, командой
 
-psql -U laravel -d laravel_db < dump.sql
+psql -U laravel -d laravel_db -h localhost < dump.sql
 
+Все пароли в файле .env.
 Запустите эту команду в корне проекта
 
 ### 3. Запустите докер
