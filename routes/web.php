@@ -10,5 +10,6 @@ Route::get('/', function () {
 });
 
 Route::get('/api/find-bus', [BusController::class, 'showFindBus']);
-Route::post('api/find-bus', [BusController::class, 'findBus']);
+Route::post('/api/find-bus', [BusController::class, 'findBus']);
+Route::post('/api/get-stops', [BusController::class, 'getStops']);
 

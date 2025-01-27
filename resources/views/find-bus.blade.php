@@ -41,13 +41,13 @@
             v-for="(bus, index) in buses"
             :key="index"
             class="alert alert-info"
-            @click="selectBus(bus.route)">
+            @click="selectBus(bus)">
             <h5>@{{ bus.route }}</h5>
             <p>Ближайшие прибытия: @{{ bus.next_arrivals.join(', ') }}</p>
-            <div v-if="stops.length > 0" class="mt-4">
+            <div v-if="bus.stops.length > 0" class="mt-4">
                 <h5>Остановки для маршрута @{{ selectedRoute }}:</h5>
                 <ul>
-                    <li v-for="(stop, index) in stops" :key="index">@{{ stop.name }}</li>
+                    <li v-for="(stop, index) in bus.stops" :key="index">@{{ stop.name }}</li>
                 </ul>
             </div>
         </div>
@@ -59,11 +59,12 @@
     const app = Vue.createApp({
         data() {
             return {
+                fromId: '',
+                toId: '',
                 from: '',
                 to: '',
                 buses: [],
-                selectedRoute: '', // Хранение выбранного маршрута
-                stops: [] // Хранение остановок
+                selectedRoute: ''
             };
         },
         methods: {
@@ -86,18 +87,20 @@
                     });
                     const data = await response.json();
                     console.log(data);
-                    if(data.buses.length > 0){
-                        this.stops.push({ name: data.from, id: data.fromId});
-                        this.stops.push({ name: data.to, id: data.toId });
-                    }
                     this.buses = data.buses;
+                    this.fromId = data.fromId;
+                    this.toId = data.toId;
                 } catch (error) {
                     console.error('Ошибка подключения:', error);
                 }
             },
-            async selectBus(route) {
+            async selectBus(bus) {
+                const requestData = {
+                    routeId: bus.routeId,
+                    stops : bus.stops
+                };
                 const csrfToken = document.getElementById('token').value;
-
+                console.log(requestData)
                 try {
                     const response = await fetch('/api/get-stops', {
                         method: 'POST',
@@ -105,7 +108,7 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': csrfToken
                         },
-                        body: JSON.stringify({ route })
+                        body: JSON.stringify(requestData)
                     });
 
                     const data = await response.json();

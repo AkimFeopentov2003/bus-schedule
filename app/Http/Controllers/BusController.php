@@ -73,9 +73,13 @@ class BusController extends Controller
                     });
 
                 $buses[] = [
-                    'route_id' => $route->id,
+                    'routeId' => $route->id,
                     'route' => $route->name,
                     'next_arrivals' => $nextArrivals->take(3)->values()->toArray(), // Берём только 3 ближайших времени
+                    'stops' => [
+                        ['id' => $departureStopId, 'name' => $from],
+                        ['id' => $arrivalStopId, 'name' => $to],
+                    ]
                 ];
             }
         }
@@ -89,10 +93,24 @@ class BusController extends Controller
 
     }
 
-    public function getStops()
+    public function getStops(Request $request)
     {
-        $stops = Stop::all();
-        return response()->json($stops);
+        $routeId = $request->input('routeId');
+        $stops = $request->input('stops');
+        $selectedStopIds = is_array($stops) ? array_column($stops, 'id') : [];
+        $unselectedStops = RouteStop::join('stops', 'route_stops.stop_id', '=', 'stops.id') // Объединение таблиц
+            ->where('route_stops.route_id', $routeId)
+            ->whereNotIn('route_stops.stop_id', $selectedStopIds) // Исключаем выбранные остановки
+            ->orderBy('route_stops.stop_order') // Сортировка по полю order
+            ->get(['route_stops.stop_id', 'stops.name']); // Получаем stop_id, order и name
+
+
+        return response()->json([
+            'routeId' => $routeId,
+            'stopsOld' => $stops,
+            'selectedStops' => $selectedStopIds,
+            'stops' => $unselectedStops,
+        ]);
     }
 
     // Получить все автобусы
