@@ -98,21 +98,44 @@ class BusController extends Controller
         $routeId = $request->input('routeId');
         $stops = $request->input('stops');
         $selectedStopIds = is_array($stops) ? array_column($stops, 'id') : [];
-        $unselectedStops = RouteStop::join('stops', 'route_stops.stop_id', '=', 'stops.id') // Объединение таблиц
+        $unselectedStops = RouteStop::join('stops', 'route_stops.stop_id', '=', 'stops.id')
             ->where('route_stops.route_id', $routeId)
-            ->whereNotIn('route_stops.stop_id', $selectedStopIds) // Исключаем выбранные остановки
-            ->orderBy('route_stops.stop_order') // Сортировка по полю order
-            ->get(['route_stops.stop_id', 'stops.name']); // Получаем stop_id, order и name
+            ->whereNotIn('route_stops.stop_id', $selectedStopIds)
+            ->orderBy('route_stops.stop_order')
+            ->get(['route_stops.stop_id', 'stops.name']);
 
 
         return response()->json([
-            'routeId' => $routeId,
-            'stopsOld' => $stops,
-            'selectedStops' => $selectedStopIds,
             'stops' => $unselectedStops,
         ]);
     }
+    public function addStop(Request $request)
+    {
+        $routeId = $request->input('routeId');
+        $stops = $request->input('stops');
+        $selectedStopId = $request->input('selectedStopId');
+        if (in_array($selectedStopId, $stops)) {
+            return response()->json(['error' => 'selectedStopId found in stops'], 400);
+        }
+        $routeStop = RouteStop::where('route_id', $routeId)
+            ->where('stop_id', $selectedStopId)
+            ->first();
 
+        if (!$routeStop) {
+            return response()->json(['error' => 'selectedStopId not found in RouteStop for this route'], 404);
+        }
+        $selectedStopName = Stop::where('id', $selectedStopId)->value('name');
+        $newStop = [
+            'id' => $selectedStopId,
+            'name' => $selectedStopName,
+        ];
+        $stops[] = $newStop;
+
+        return response()->json([
+            'stops' => $stops,
+        ]);
+
+    }
     // Получить все автобусы
     public function getBuses()
     {

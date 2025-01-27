@@ -49,6 +49,27 @@
                 <ul>
                     <li v-for="(stop, index) in bus.stops" :key="index">@{{ stop.name }}</li>
                 </ul>
+                <!-- Селект для выбора остановки -->
+                <div class="mt-3">
+                    <label for="stopsSelect">Выберите остановку для добавления :</label>
+                    <select
+                        id="stopsSelect"
+                        class="form-select"
+                        v-model="selectedStop"
+                        :disabled="stopsInput === null"
+                    >
+                        <option v-for="(stop, index) in stopsInput" :key="index" :value="stop.stop_id">
+                            @{{ stop.name }}
+                        </option>
+                    </select>
+                    <button
+                        class="btn btn-primary mt-2"
+                        :disabled="!selectedStop"
+                        @click.stop="addStopToRoute(bus, selectedStop)"
+                    >
+                        Добавить остановку
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -64,7 +85,8 @@
                 from: '',
                 to: '',
                 buses: [],
-                selectedRoute: ''
+                stopsInput: null,
+                selectedStop: null,
             };
         },
         methods: {
@@ -86,7 +108,7 @@
                         body: JSON.stringify(requestData)
                     });
                     const data = await response.json();
-                    console.log(data);
+                    // console.log(data);
                     this.buses = data.buses;
                     this.fromId = data.fromId;
                     this.toId = data.toId;
@@ -112,9 +134,37 @@
                     });
 
                     const data = await response.json();
+                    if(data.stops.length > 0){
+                        this.stopsInput = data.stops;
+                    }
+                    console.log(this.stopsInput);
+                } catch (error) {
+                    console.error('Ошибка подключения:', error);
+                }
+            },
+            async addStopToRoute(bus, selectedStopId){
+                const requestData = {
+                    routeId: bus.routeId,
+                    stops : bus.stops,
+                    selectedStopId: selectedStopId
+                };
+                const csrfToken = document.getElementById('token').value;
+                console.log(requestData)
+                try {
+                    const response = await fetch('/api/add-stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const data = await response.json();
                     console.log(data);
-                    this.selectedRoute = route;
-                    this.stops = data.stops; // Полученные остановки
+                    bus.stops = data.stops;
+                    this.stopsInput = null;
+                    this.selectedStop = null;
                 } catch (error) {
                     console.error('Ошибка подключения:', error);
                 }
